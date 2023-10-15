@@ -1,4 +1,4 @@
-import 'package:admin_table/admin_table.dart';
+import 'package:dart_table/dart_table.dart';
 import 'package:flutter/material.dart';
 
 /// This is an example of how to use the package
@@ -14,32 +14,52 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MyHomePage(title: 'Flutter Admin Table Demo'),
+      home: const MyHomePage(title: 'Flutter Admin Table Demo'),
     );
   }
 }
 
 /// MyHomePage is a home widget of the app which contains [AdminTable] widget
-class MyHomePage extends StatelessWidget {
-  MyHomePage({
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({
     super.key,
     required this.title,
   });
 
   final String title;
 
-  late PlutoGridStateManager? stateManager;
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  bool splitView = true;
+
   @override
   Widget build(BuildContext context) {
+    /// Current Theme
+    ///
+    final theme = Theme.of(context);
+    late PlutoGridStateManager? stateManager;
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
-        title: Text(title),
+        title: Text(widget.title),
+        actions: [
+          IconButton(
+            onPressed: () => setState(() {
+              splitView = !splitView;
+            }),
+            color: splitView ? theme.primaryColor : null,
+            icon: const Icon(Icons.vertical_split_rounded),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -50,16 +70,255 @@ class MyHomePage extends StatelessWidget {
           gridRows: UserModel.gridRows,
 
           /// Right side widget of [SplitView]
-          child: (state, controller, cell) {
-            stateManager = state;
-            return UserView(
-              cell: cell,
-              stateManager: stateManager,
-              formKey: GlobalKey<FormState>(),
-            );
-          },
+          child: splitView
+              ? (state, controller, cell) {
+                  stateManager = state;
+                  return UserView(
+                    cell: cell,
+                    stateManager: stateManager,
+                    formKey: GlobalKey<FormState>(),
+                  );
+                }
+              : null,
         ),
       ),
+    );
+  }
+}
+
+class UserView extends StatefulWidget {
+  final PlutoCell? cell;
+  final PlutoGridStateManager? stateManager;
+  final GlobalKey<FormState> formKey;
+  const UserView({
+    super.key,
+    required this.cell,
+    required this.formKey,
+    this.stateManager,
+  });
+
+  @override
+  State<UserView> createState() => _UserViewState();
+}
+
+class _UserViewState extends State<UserView>
+    with SingleTickerProviderStateMixin {
+  TabController? _tabController;
+
+  @override
+  void initState() {
+    _tabController = TabController(length: 2, vsync: this);
+    super.initState();
+  }
+
+  String buttonText = "Edit";
+  Icon buttonIcon = const Icon(Icons.edit_note);
+
+  UserModel user = UserModel(
+    id: UserModel.dummyData.length + 1,
+    name: "New User",
+    age: 20,
+    height: 160.0,
+    weight: 60.0,
+    birthday: DateTime(2000, 1, 1),
+    email: "",
+    address: "",
+    createdAt: DateTime.now(),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(
+          color: Colors.black38,
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          centerTitle: false,
+          title: TabBar(
+            controller: _tabController,
+            indicatorSize: TabBarIndicatorSize.tab,
+            onTap: (value) => setState(() {
+              buttonText = value == 0 ? "Edit" : "Save";
+              buttonIcon = value == 0
+                  ? const Icon(Icons.edit_note)
+                  : const Icon(Icons.playlist_add);
+            }),
+            tabs: const [
+              Tab(text: 'Edit'),
+              Tab(text: 'Add'),
+            ],
+          ),
+        ),
+        body: Form(
+          key: widget.formKey,
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              FormView(
+                user: UserModel.fromJson(
+                  widget.cell?.row.toJson() ?? {},
+                ),
+              ),
+              FormView(
+                user: user,
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: ButtonBar(
+          alignment: MainAxisAlignment.end,
+          children: [
+            FilledButton.icon(
+              onPressed: () {
+                try {
+                  widget.formKey.currentState!.save();
+                  switch (buttonText) {
+                    case "Edit":
+                      final row = widget.stateManager!.currentRowIdx ?? 0;
+                      user.id = row + 1;
+                      UserModel.dummyData.removeAt(row);
+                      UserModel.dummyData.insert(row, user);
+                      widget.stateManager!.removeAllRows();
+                      widget.stateManager!.insertRows(
+                        0,
+                        UserModel.gridRows,
+                      );
+                      return;
+                    case "Save":
+                      user.id = UserModel.dummyData.length + 1;
+                      UserModel.dummyData.add(user);
+                      widget.stateManager!.removeAllRows();
+                      widget.stateManager!.insertRows(
+                        0,
+                        UserModel.gridRows,
+                      );
+                      return;
+                    default:
+                  }
+                } catch (e) {
+                  print(e);
+                }
+              },
+              icon: buttonIcon,
+              label: Text(buttonText),
+            ),
+            if (_tabController!.index == 0)
+              FilledButton.icon(
+                onPressed: () {
+                  try {
+                    widget.formKey.currentState!.save();
+                    widget.stateManager!.removeCurrentRow();
+                  } catch (e) {
+                    print(e);
+                  }
+                },
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all(Colors.red.shade400),
+                ),
+                icon: const Icon(Icons.delete_forever),
+                label: const Text("Delete"),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class FormView extends StatelessWidget {
+  final UserModel user;
+  const FormView({
+    super.key,
+    required this.user,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      children: [
+        TextFormField(
+          initialValue: user.name,
+          decoration: const InputDecoration(
+            labelText: 'Name',
+            border: OutlineInputBorder(),
+          ),
+          onSaved: (value) => user.name = value,
+        ),
+        const SizedBox(height: 10.0),
+        TextFormField(
+          initialValue: user.age == null ? null : "${user.age}",
+          decoration: const InputDecoration(
+            labelText: 'Age',
+            border: OutlineInputBorder(),
+          ),
+          onSaved: (value) => user.age = int.tryParse(value ?? "0"),
+        ),
+        const SizedBox(height: 10.0),
+        TextFormField(
+          initialValue: user.height == null ? null : "${user.height}",
+          decoration: const InputDecoration(
+            labelText: 'Height',
+            border: OutlineInputBorder(),
+          ),
+          onSaved: (value) => user.height = double.tryParse(value ?? "0"),
+        ),
+        const SizedBox(height: 10.0),
+        TextFormField(
+          initialValue: user.weight == null ? null : "${user.weight}",
+          decoration: const InputDecoration(
+            labelText: 'Weight',
+            border: OutlineInputBorder(),
+          ),
+          onSaved: (value) => user.weight = double.tryParse(value ?? "0"),
+        ),
+        const SizedBox(height: 10.0),
+        TextFormField(
+          initialValue: user.birthday?.toIso8601String(),
+          decoration: const InputDecoration(
+            labelText: 'Birthday',
+            border: OutlineInputBorder(),
+          ),
+          onSaved: (value) =>
+              user.birthday = DateTime.tryParse(value ?? "0") ?? DateTime.now(),
+        ),
+        const SizedBox(height: 10.0),
+        TextFormField(
+          initialValue: user.email,
+          decoration: const InputDecoration(
+            labelText: 'Email',
+            border: OutlineInputBorder(),
+          ),
+          onSaved: (value) => user.email = value,
+        ),
+        const SizedBox(height: 10.0),
+        TextFormField(
+          initialValue: user.address,
+          decoration: const InputDecoration(
+            labelText: 'Address',
+            border: OutlineInputBorder(),
+          ),
+          onSaved: (value) => user.address = value,
+        ),
+        const SizedBox(height: 10.0),
+        TextFormField(
+          initialValue: user.createdAt?.toIso8601String(),
+          decoration: const InputDecoration(
+            labelText: 'Created At',
+            border: OutlineInputBorder(),
+          ),
+          onSaved: (value) => user.createdAt =
+              DateTime.tryParse(value ?? "0") ?? DateTime.now(),
+        ),
+      ],
     );
   }
 }
@@ -79,16 +338,18 @@ class UserModel {
     this.email,
     this.address,
     this.createdAt,
+    this.id,
   });
 
-  final String? name;
-  final int? age;
-  final double? height;
-  final double? weight;
-  final DateTime? birthday;
-  final String? email;
-  final String? address;
-  final DateTime? createdAt;
+  String? name;
+  int? age;
+  double? height;
+  double? weight;
+  DateTime? birthday;
+  String? email;
+  String? address;
+  DateTime? createdAt;
+  int? id;
 
   UserModel copyWith({
     String? name,
@@ -99,6 +360,7 @@ class UserModel {
     String? email,
     String? address,
     DateTime? createdAt,
+    int? id,
   }) {
     return UserModel(
       name: name ?? this.name,
@@ -109,23 +371,39 @@ class UserModel {
       email: email ?? this.email,
       address: address ?? this.address,
       createdAt: createdAt ?? this.createdAt,
+      id: id ?? this.id,
+    );
+  }
+
+  UserModel copyWithJson(Map<String, dynamic> json) {
+    return UserModel(
+      name: json["name"] ?? name,
+      age: json["age"] ?? age,
+      height: json["height"] ?? height,
+      weight: json["weight"] ?? weight,
+      birthday: DateTime.tryParse(json["birthday"]) ?? birthday,
+      email: json["email"] ?? email,
+      address: json["address"] ?? address,
+      createdAt: DateTime.tryParse(json["createdAt"]) ?? createdAt,
+      id: json["id"] ?? id,
     );
   }
 
   /// Dummy data for example
-  static List<UserModel> get dummyData => List.generate(
-        120,
-        (index) => UserModel(
-          name: 'User ${index + 1}',
-          age: 20 + index,
-          height: 160.0 + index,
-          weight: 60.0 + index,
-          birthday: DateTime(2000, 1, 1).add(Duration(days: index)),
-          email: "example$index@gmail.com",
-          address: "Seoul",
-          createdAt: DateTime(2021, 1, 1).add(Duration(days: index)),
-        ),
-      ).toList();
+  static List<UserModel> dummyData = List.generate(
+    12,
+    (index) => UserModel(
+      id: index + 1,
+      name: 'User ${index + 1}',
+      age: 20,
+      height: 160,
+      weight: 60,
+      birthday: DateTime(2000, 1, 1).add(Duration(days: index)),
+      email: "example$index@gmail.com",
+      address: "Seoul",
+      createdAt: DateTime(2021, 1, 1).add(Duration(days: index)),
+    ),
+  ).toList();
 
   /// Grid Columns for example
   static List<PlutoColumn> get gridColumns => [
@@ -183,9 +461,7 @@ class UserModel {
   static List<PlutoRow> get gridRows => dummyData
       .map((model) => PlutoRow(
             cells: {
-              'Sr. No.': PlutoCell(
-                value: model.name?.split(' ')[1].toString(),
-              ),
+              'Sr. No.': PlutoCell(value: model.id),
               'name': PlutoCell(value: model.name),
               'age': PlutoCell(value: model.age),
               'height': PlutoCell(value: model.height),
@@ -203,12 +479,13 @@ class UserModel {
     return UserModel(
       name: json["name"],
       age: json["age"],
-      height: json["height"],
-      weight: json["weight"],
       birthday: DateTime.parse(json["birthday"]),
       email: json["email"],
       address: json["address"],
       createdAt: DateTime.parse(json["createdAt"]),
+      id: json["id"],
+      height: json["height"],
+      weight: json["weight"],
     );
   }
 
@@ -221,230 +498,6 @@ class UserModel {
         "email": email,
         "address": address,
         "createdAt": createdAt?.toIso8601String(),
+        "id": id,
       };
-}
-
-class UserView extends StatefulWidget {
-  final PlutoCell? cell;
-  final PlutoGridStateManager? stateManager;
-  final GlobalKey<FormState> formKey;
-  const UserView({
-    super.key,
-    required this.cell,
-    required this.formKey,
-    this.stateManager,
-  });
-
-  @override
-  State<UserView> createState() => _UserViewState();
-}
-
-class _UserViewState extends State<UserView>
-    with SingleTickerProviderStateMixin {
-  TabController? _tabController;
-
-  @override
-  void initState() {
-    _tabController = TabController(length: 2, vsync: this);
-    super.initState();
-  }
-
-  String buttonText = "Edit";
-  Icon buttonIcon = const Icon(Icons.edit_note);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: Colors.black38,
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          centerTitle: false,
-          title: TabBar(
-            controller: _tabController,
-            indicatorSize: TabBarIndicatorSize.tab,
-            onTap: (value) => setState(() {
-              buttonText = value == 0 ? "Edit" : "Save";
-              buttonIcon = value == 0
-                  ? const Icon(Icons.edit_note)
-                  : const Icon(Icons.playlist_add);
-            }),
-            tabs: const [
-              Tab(text: 'Edit'),
-              Tab(text: 'Add'),
-            ],
-          ),
-        ),
-        body: Form(
-          key: widget.formKey,
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              FormView(
-                user: UserModel.fromJson(
-                  widget.cell?.row.toJson() ?? {},
-                ),
-                formKey: widget.formKey,
-              ),
-              FormView(
-                user: UserModel(),
-                formKey: widget.formKey,
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: ButtonBar(
-          alignment: MainAxisAlignment.end,
-          children: [
-            FilledButton.icon(
-              onPressed: () {
-                try {
-                  widget.formKey.currentState!.save();
-                  switch (buttonText) {
-                    case "Edit":
-                      final cell = PlutoCell(
-                        value: UserModel.fromJson(
-                          widget.cell?.row.toJson() ?? {},
-                        ),
-                      );
-
-                      widget.stateManager
-                          ?.setCurrentCell(cell, widget.cell?.row.sortIdx ?? 0);
-                      break;
-                    case "Save":
-                      final newRows = widget.stateManager?.getNewRows() ?? [];
-                      for (var e in newRows) {
-                        e.cells['name']!.value = 'created';
-                      }
-                      widget.stateManager?.appendRows(newRows);
-                      widget.stateManager?.setCurrentCell(
-                        newRows.first.cells.entries.first.value,
-                        (widget.stateManager?.refRows.length ?? 1) - 1,
-                      );
-                      widget.stateManager?.moveScrollByRow(
-                        PlutoMoveDirection.down,
-                        (widget.stateManager?.refRows.length ?? 2) - 2,
-                      );
-                      widget.stateManager?.setKeepFocus(true);
-                      break;
-                    default:
-                  }
-                } catch (e) {
-                  print(e);
-                }
-              },
-              icon: buttonIcon,
-              label: Text(buttonText),
-            ),
-            if (_tabController!.index == 0)
-              FilledButton.icon(
-                onPressed: () {
-                  try {
-                    widget.formKey.currentState!.save();
-                    widget.stateManager!.removeCurrentRow();
-                  } catch (e) {
-                    print(e);
-                  }
-                },
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all(Colors.red.shade400),
-                ),
-                icon: const Icon(Icons.delete_forever),
-                label: const Text("Delete"),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class FormView extends StatelessWidget {
-  final UserModel user;
-  final GlobalKey<FormState> formKey;
-  const FormView({
-    super.key,
-    required this.user,
-    required this.formKey,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      children: [
-        TextFormField(
-          initialValue: user.name,
-          decoration: const InputDecoration(
-            labelText: 'Name',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 10.0),
-        TextFormField(
-          initialValue: "${user.age ?? ""}",
-          decoration: const InputDecoration(
-            labelText: 'Age',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 10.0),
-        TextFormField(
-          initialValue: "${user.height ?? ""}",
-          decoration: const InputDecoration(
-            labelText: 'Height',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 10.0),
-        TextFormField(
-          initialValue: "${user.weight ?? ""}",
-          decoration: const InputDecoration(
-            labelText: 'Weight',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 10.0),
-        TextFormField(
-          initialValue: user.birthday?.toIso8601String(),
-          decoration: const InputDecoration(
-            labelText: 'Birthday',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 10.0),
-        TextFormField(
-          initialValue: user.email,
-          decoration: const InputDecoration(
-            labelText: 'Email',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 10.0),
-        TextFormField(
-          initialValue: user.address,
-          decoration: const InputDecoration(
-            labelText: 'Address',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 10.0),
-        TextFormField(
-          initialValue: user.createdAt?.toIso8601String(),
-          decoration: const InputDecoration(
-            labelText: 'Created At',
-            border: OutlineInputBorder(),
-          ),
-        ),
-      ],
-    );
-  }
 }

@@ -1,4 +1,4 @@
-library admin_table;
+library dart_table;
 
 export 'package:pluto_grid/pluto_grid.dart';
 export 'package:split_view/split_view.dart';

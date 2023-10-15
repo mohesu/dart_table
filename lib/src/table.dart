@@ -7,6 +7,17 @@ import 'package:split_view/split_view.dart';
 
 import 'copy_action.dart';
 
+/// The current cell is passed to the right side of the split view.
+/// The right side of the split view is the [child] widget.
+/// The [child] widget is a widget that can be customized by the user.
+/// The [child] widget can be used to display the form of the selected row.
+///
+ValueNotifier<PlutoCell?> currentCell = ValueNotifier(null);
+
+/// The [PlutoGridStateManager] is passed to the right side of the split view.
+///
+ValueNotifier<PlutoGridStateManager?> stateManager = ValueNotifier(null);
+
 class AdminTable extends StatelessWidget {
   /// Controls the views being splitted.
   final SplitViewController? splitController;
@@ -256,7 +267,7 @@ class AdminTable extends StatelessWidget {
   /// {@template pluto_grid_property_configuration}
   /// In [configuration], you can change the style and settings or text used in [PlutoGrid].
   /// {@endtemplate}
-  final PlutoGridConfiguration? griConfiguration;
+  final PlutoGridConfiguration? gridConfiguration;
 
   final PlutoChangeNotifierFilterResolver? gridNotifierFilterResolver;
 
@@ -286,7 +297,7 @@ class AdminTable extends StatelessWidget {
     PlutoGridStateManager? state,
     SplitViewController controller,
     PlutoCell? cell,
-  ) child;
+  )? child;
 
   const AdminTable({
     Key? key,
@@ -304,7 +315,7 @@ class AdminTable extends StatelessWidget {
     this.activeIndicator,
     required this.gridColumns,
     required this.gridRows,
-    required this.child,
+    this.child,
     this.gridColumnGroups,
     this.onGridLoaded,
     this.onGridChanged,
@@ -320,7 +331,7 @@ class AdminTable extends StatelessWidget {
     this.gridNoRowsWidget,
     this.gridRowColorCallback,
     this.gridColumnMenuDelegate,
-    this.griConfiguration,
+    this.gridConfiguration,
     this.gridNotifierFilterResolver,
     this.gridMode,
   }) : super(key: key);
@@ -332,24 +343,22 @@ class AdminTable extends StatelessWidget {
     ///
     double weights = 0.7;
 
+    /// if child is null, the right side of the split view is not displayed.
+    /// If you want to display the right side of the split view,
+    /// pass a widget to [child].
+    ///
+    final childIsNotEmpty = child != null;
+
     /// If [splitController] is null, create a new one.
     ///
     SplitViewController controller = splitController ??
         SplitViewController(
           limits: [
             null,
-            WeightLimit(max: 0.5, min: 0.2),
+            childIsNotEmpty ? WeightLimit(max: 0.5, min: 0.2) : null,
           ],
-          weights: [weights],
+          weights: childIsNotEmpty ? [weights] : null,
         );
-
-    /// The current cell is passed to the right side of the split view.
-    /// The right side of the split view is the [child] widget.
-    /// The [child] widget is a widget that can be customized by the user.
-    /// The [child] widget can be used to display the form of the selected row.
-    ///
-    ValueNotifier<PlutoCell?> currentCell = ValueNotifier(null);
-    ValueNotifier<PlutoGridStateManager?> stateManager = ValueNotifier(null);
 
     /// Current Theme
     ///
@@ -369,19 +378,23 @@ class AdminTable extends StatelessWidget {
       children: [
         PlutoGrid(
           mode: gridMode ?? PlutoGridMode.selectWithOneTap,
-          configuration: griConfiguration ??
+          configuration: gridConfiguration ??
               PlutoGridConfiguration(
                 style: PlutoGridStyleConfig(
                   gridBorderRadius: const BorderRadius.all(Radius.circular(12)),
                   activatedColor: ElevationOverlay.applySurfaceTint(
                     theme.colorScheme.onPrimary,
                     theme.colorScheme.primary,
-                    9,
+                    3,
+                  ),
+                  gridPopupBorderRadius: const BorderRadius.all(
+                    Radius.circular(12.0),
                   ),
                   activatedBorderColor: theme.colorScheme.primary,
                   iconColor: theme.colorScheme.primary,
                   checkedColor: theme.colorScheme.primaryContainer,
                 ),
+                tabKeyAction: PlutoGridTabKeyAction.moveToNextOnEdge,
                 shortcut: PlutoGridShortcut(
                   actions: {
                     ...PlutoGridShortcut.defaultActions,
@@ -425,14 +438,20 @@ class AdminTable extends StatelessWidget {
           onSorted: onGridSorted,
           rowColorCallback: gridRowColorCallback,
         ),
-        ValueListenableBuilder<PlutoCell?>(
-          valueListenable: currentCell,
-          builder: (context, cell, widget) => child(
-            stateManager.value,
-            controller,
-            cell,
+        if (childIsNotEmpty)
+          ValueListenableBuilder(
+            valueListenable: stateManager,
+            builder: (context, state, widget) {
+              return ValueListenableBuilder<PlutoCell?>(
+                valueListenable: currentCell,
+                builder: (context, cell, widget) => child!(
+                  state,
+                  controller,
+                  cell,
+                ),
+              );
+            },
           ),
-        ),
       ],
     );
   }
