@@ -46,7 +46,6 @@ class _MyHomePageState extends State<MyHomePage> {
     /// Current Theme
     ///
     final theme = Theme.of(context);
-    late PlutoGridStateManager? stateManager;
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
@@ -72,10 +71,9 @@ class _MyHomePageState extends State<MyHomePage> {
           /// Right side widget of [SplitView]
           child: splitView
               ? (state, controller, cell) {
-                  stateManager = state;
                   return UserView(
                     cell: cell,
-                    stateManager: stateManager,
+                    stateManager: state,
                     formKey: GlobalKey<FormState>(),
                   );
                 }
@@ -113,18 +111,6 @@ class _UserViewState extends State<UserView>
 
   String buttonText = "Edit";
   Icon buttonIcon = const Icon(Icons.edit_note);
-
-  UserModel user = UserModel(
-    id: UserModel.dummyData.length + 1,
-    name: "New User",
-    age: 20,
-    height: 160.0,
-    weight: 60.0,
-    birthday: DateTime(2000, 1, 1),
-    email: "",
-    address: "",
-    createdAt: DateTime.now(),
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +153,7 @@ class _UserViewState extends State<UserView>
                 ),
               ),
               FormView(
-                user: user,
+                user: UserModel(),
               ),
             ],
           ),
@@ -181,24 +167,24 @@ class _UserViewState extends State<UserView>
                   widget.formKey.currentState!.save();
                   switch (buttonText) {
                     case "Edit":
-                      final row = widget.stateManager!.currentRowIdx ?? 0;
-                      user.id = row + 1;
-                      UserModel.dummyData.removeAt(row);
-                      UserModel.dummyData.insert(row, user);
-                      widget.stateManager!.removeAllRows();
-                      widget.stateManager!.insertRows(
-                        0,
-                        UserModel.gridRows,
-                      );
+                      // final row = widget.stateManager!.currentRowIdx ?? 0;
+                      // user.id = row + 1;
+                      // UserModel.dummyData.removeAt(row);
+                      // UserModel.dummyData.insert(row, user);
+                      // widget.stateManager!.removeAllRows();
+                      // widget.stateManager!.insertRows(
+                      //   0,
+                      //   UserModel.gridRows,
+                      // );
                       return;
                     case "Save":
-                      user.id = UserModel.dummyData.length + 1;
-                      UserModel.dummyData.add(user);
-                      widget.stateManager!.removeAllRows();
-                      widget.stateManager!.insertRows(
-                        0,
-                        UserModel.gridRows,
-                      );
+                      // user.id = UserModel.dummyData.length + 1;
+                      // UserModel.dummyData.add(user);
+                      // widget.stateManager!.removeAllRows();
+                      // widget.stateManager!.insertRows(
+                      //   0,
+                      //   UserModel.gridRows,
+                      // );
                       return;
                     default:
                   }
@@ -393,11 +379,11 @@ class UserModel {
   static List<UserModel> dummyData = List.generate(
     12,
     (index) => UserModel(
-      id: index + 1,
+      id: (index + 1).toInt(),
       name: 'User ${index + 1}',
-      age: 20,
-      height: 160,
-      weight: 60,
+      age: 20 + index,
+      height: 160 + index.toDouble(),
+      weight: 60 + index.toDouble(),
       birthday: DateTime(2000, 1, 1).add(Duration(days: index)),
       email: "example$index@gmail.com",
       address: "Seoul",
@@ -409,7 +395,7 @@ class UserModel {
   static List<PlutoColumn> get gridColumns => [
         PlutoColumn(
           title: 'Serial Number',
-          field: 'Sr. No.',
+          field: 'id',
           type: PlutoColumnType.number(),
           enableEditingMode: false,
           enableColumnDrag: false,
@@ -461,7 +447,7 @@ class UserModel {
   static List<PlutoRow> get gridRows => dummyData
       .map((model) => PlutoRow(
             cells: {
-              'Sr. No.': PlutoCell(value: model.id),
+              'id': PlutoCell(value: model.id),
               'name': PlutoCell(value: model.name),
               'age': PlutoCell(value: model.age),
               'height': PlutoCell(value: model.height),
@@ -477,15 +463,15 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     if (json.isEmpty) return UserModel();
     return UserModel(
-      name: json["name"],
-      age: json["age"],
+      name: json["name"].toString(),
+      age: int.parse(json["age"].toString()),
       birthday: DateTime.parse(json["birthday"]),
       email: json["email"],
       address: json["address"],
       createdAt: DateTime.parse(json["createdAt"]),
-      id: json["id"],
-      height: json["height"],
-      weight: json["weight"],
+      id: int.parse(json["id"].toString()),
+      height: double.parse(json["height"].toString()),
+      weight: double.parse(json["weight"].toString()),
     );
   }
 
