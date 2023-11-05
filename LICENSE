@@ -1,5 +1,51 @@
-Open Source License
+Apache License, Version 2.0
 
 This open-source software license ("License") is provided for the "dart_table" Flutter package, hereinafter referred to as the "Package." By using, modifying, contributing to, or distributing the Package, you agree to the terms and conditions of this License.
 
-Dependencies of packages licensed under this License ("Dependencies") are not covered under this License. Dependencies are subject to their own licenses, which you should review before using the Dependency.
+1. Grant of License
+
+Subject to the terms and conditions of this License, the author(s) of the Package grants you a worldwide, non-exclusive, royalty-free, and perpetual license to use, modify, distribute, and sublicense the Package.
+
+2. Attribution
+
+You must give proper attribution to the author(s) and the Package within your project's documentation, user interface, or any other relevant materials. This should include the Package name and a reference to the original repository, if available.
+
+3. Redistribution
+
+You are free to redistribute the Package, either in its original form or with modifications, as long as the following conditions are met:
+
+3.1. You must include a copy of this License with the redistributed Package.
+
+3.2. Redistributions must be licensed under the terms of this License or a compatible open-source license.
+
+4. Dependencies
+
+Dependencies of the Package that are licensed under this License are subject to their own licenses. You should review the licenses of Dependencies before using them.
+
+5. Contributions
+
+Contributions to the Package are welcome. When contributing code, documentation, or other materials, you agree to license those contributions under the terms of this License.
+
+6. No Warranty
+
+The Package is provided "as is," without any warranty or guarantee of fitness for any purpose. The author(s) of the Package shall not be liable for any damages or losses arising from the use of the Package.
+
+7. Termination
+
+If you violate the terms and conditions of this License, your rights under this License will terminate automatically, without notice, and you must immediately cease using, distributing, or contributing to the Package.
+
+8. Governing Law
+
+This License is governed by and construed in accordance with the laws of [Your Jurisdiction].
+
+9. Contact
+
+You may contact the author(s) of the Package at rvndsngwn@gmail.com for questions or inquiries related to this License.
+
+By using the Package, you acknowledge that you have read, understood, and agreed to the terms and conditions of this License. If you do not agree to these terms, you are not allowed to use, modify, distribute, or contribute to the Package.
+
+Thank you for using and supporting open-source software!
+
+Arvind Sangwan
+rvndsngwn@gmail.com
+06/11/2023

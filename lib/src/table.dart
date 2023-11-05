@@ -1219,7 +1219,13 @@ class DartTable extends StatelessWidget {
     DataGridController? controller,
   )? child;
 
-  const DartTable({
+  // decoration for the [SfDataGrid]
+  final Decoration? decoration;
+
+  // border radius for the [SfDataGrid]
+  final BorderRadiusGeometry? borderRadius;
+
+  DartTable({
     Key? key,
     this.splitController,
     this.viewMode = SplitViewMode.Horizontal,
@@ -1310,11 +1316,16 @@ class DartTable extends StatelessWidget {
     this.onColumnDragging,
     this.columnDragFeedbackBuilder,
     this.showColumnHeaderIconOnHover = false,
+    this.decoration,
+    this.borderRadius,
   })  : assert(frozenColumnsCount >= 0),
         assert(footerFrozenColumnsCount >= 0),
         assert(frozenRowsCount >= 0),
         assert(footerFrozenRowsCount >= 0),
         super(key: key);
+
+  /// SplitViewController
+  final ValueNotifier<SplitViewController?> split = ValueNotifier(null);
 
   @override
   Widget build(BuildContext context) {
@@ -1357,15 +1368,16 @@ class DartTable extends StatelessWidget {
       controller: split.value,
       children: [
         Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(12.0),
-            border: Border.all(
-              color: Colors.black38,
-            ),
-          ),
+          decoration: decoration ??
+              BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: borderRadius ?? BorderRadius.circular(12.0),
+                border: Border.all(
+                  color: Colors.black38,
+                ),
+              ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: borderRadius ?? BorderRadius.circular(12.0),
             child: SfDataGrid(
               columns: columns,
               source: source,
@@ -1456,6 +1468,3 @@ class DartTable extends StatelessWidget {
     );
   }
 }
-
-/// SplitViewController
-ValueNotifier<SplitViewController?> split = ValueNotifier(null);

@@ -62,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
 
-        /// AdminTable is a widget that contains [PlutoGrid] and [SplitView]
+        /// DartTable is a widget that contains [SfDataGrid] and [SplitView]
         child: DartTable(
           columns: UserModel.columns,
           source: UserModelSource(users: UserModel.dummyData),

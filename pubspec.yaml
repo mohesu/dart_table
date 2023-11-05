@@ -1,6 +1,6 @@
 name: dart_table
 description: Flutter data table with selection, sorting, filtering, and pagination. Also supports split view.
-version: 0.0.1
+version: 0.0.2
 homepage: https://mohesu.com
 repository: https://github.com/mohesu/dart_table
 issue_tracker: https://github.com/mohesu/dart_table/issues
