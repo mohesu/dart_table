@@ -1,1 +1,5 @@
-TODO: Add your license here.
+Open Source License
+
+This open-source software license ("License") is provided for the "dart_table" Flutter package, hereinafter referred to as the "Package." By using, modifying, contributing to, or distributing the Package, you agree to the terms and conditions of this License.
+
+Dependencies of packages licensed under this License ("Dependencies") are not covered under this License. Dependencies are subject to their own licenses, which you should review before using the Dependency.
