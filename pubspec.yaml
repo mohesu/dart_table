@@ -6,9 +6,9 @@ repository: https://github.com/mohesu/dart_table
 issue_tracker: https://github.com/mohesu/dart_table/issues
 screenshots:
   - description: "Table"
-    path: assets/IMG_1.PNG
+    path: assets/IMG_1.png
   - description: "Table with selection"
-    path: assets/IMG_0.PNG
+    path: assets/IMG_0.png
 
 topics:
   - flutter-datagrid
