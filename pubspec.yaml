@@ -14,7 +14,7 @@ topics:
   - flutter-datagrid
   - flutter-table
   - data-table
-  - crud-table
+  - datagrid
   - table
 
 environment:

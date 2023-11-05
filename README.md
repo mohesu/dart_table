@@ -12,13 +12,13 @@
 
 - Table
 
-<img src="https://raw.githubusercontent.com/mohesu/dart_table/beta/assets/IMG_1.png" width=580 height=320 alt="">
+<img src="https://raw.githubusercontent.com/mohesu/dart_table/beta/assets/IMG_1.png" width=580 height=400 alt="">
 
-<img src="https://raw.githubusercontent.com/mohesu/dart_table/beta/assets/IMG_2.png" width=580 height=320 alt="">
+<img src="https://raw.githubusercontent.com/mohesu/dart_table/beta/assets/IMG_2.png" width=580 height=400 alt="">
 
 - Table with Split view
 
-<img src="https://raw.githubusercontent.com/mohesu/dart_table/beta/assets/IMG_0.png" width=580 height=320 alt="">
+<img src="https://raw.githubusercontent.com/mohesu/dart_table/beta/assets/IMG_0.png" width=580 height=400 alt="">
 
 ## Setup
 
